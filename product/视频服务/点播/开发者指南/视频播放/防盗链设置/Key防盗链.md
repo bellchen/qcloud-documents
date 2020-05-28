@@ -28,11 +28,12 @@ QueryString 中的防盗链参数必须按照`t`、`exper`、`rlimit`、`us`、`
 | `rlimit` | 否   | <li>最多允许多少个不同 IP 的终端播放，以十进制表示，不填表示不做限制<br><li>当限制 URL 只能被1个人播放时，建议 rlimit 不要严格限制成1（例如可设置为3），因为移动端断网后重连 IP 可能改变 |
 | `us`     | 否   | <li>链接标识，用于随机化一个防盗链 URL，增强链接的唯一性<br><li>建议每次生成防盗链 URL 时，指定一个随机的 us 值|
 | `sign`   | 是   | <li>防盗链签名，以32个字符长的十六进制数表示，用于校验防盗链 URL 的合法性<br><li>签名校验失败将返回403响应码。下面将介绍 [签名计算公式](#formula) |
+|`whip`    |否    | <li>允许播放的客户端IP白名单列表<br><li>支持多个IP，如120.27.55.231,120.71.8.68 <br><li>支持*号正则规则|
 
 
 #### <span id="formula"></span>签名计算公式
 ```
-sign = md5(KEY + Dir + t + exper + rlimit + us)
+sign = md5(KEY + Dir + t + exper + rlimit + us + whip)
 ```
 
 公式中的`+`代表字符串拼接，选填参数可以为空字符串。
@@ -68,7 +69,7 @@ sign = md5("24FEQmTzro4V5u3D5epW/dir1/dir2/5a71afc072d4cd1101") = "3d8488faeb37d
 http://example.vod2.myqcloud.com/dir1/dir2/myVideo.mp4?t=5a71afc0&us=72d4cd1101&sign=3d8488faeb37d52d6bf63b63c1b171c3
 ```
 
-### 示例2：播放地址最多可播放 IP 数
+### 示例2：播放地址最多可播放 IP 数以及限制客户端IP
 #### 步骤1：确定防盗链参数
 
 | 参数名 | 取值                   | 说明                                               |
@@ -77,11 +78,12 @@ http://example.vod2.myqcloud.com/dir1/dir2/myVideo.mp4?t=5a71afc0&us=72d4cd1101&
 | `Dir`    | `/dir1/dir2/`          | 原始播放 URL 的 PATH 中除去`myVideo.mp4`的剩余部分 |
 | `t`      | `5a71afc0`             | 过期时间戳1517400000的十六进制表示结果             |
 | `rlimit` | `3`                    | 限制最多允许3个不同的 IP 播放 URL                  |
-| `us`     | `72d4cd1101`           | 生成的随机字符串                                   |
+| `us`     | `72d4cd1101`           | 生成的随机字符串                                  |
+|`whip`    | `*120.71.8.68*,*121.37.143.92*` |允许访问的客户端IP列表|
 
 #### 步骤2：计算签名
 ```
-sign = md5("24FEQmTzro4V5u3D5epW/dir1/dir2/5a71afc0372d4cd1101") = "c5214f0d5961b13acd558b4957c4dfc5"
+sign = md5("24FEQmTzro4V5u3D5epW/dir1/dir2/5a71afc0372d4cd1101*120.71.8.68*,*121.37.143.92*") = "cda0d1a79e2358116808173e97a30eb6"
 ```
 
 #### 步骤3：生成防盗链 URL
